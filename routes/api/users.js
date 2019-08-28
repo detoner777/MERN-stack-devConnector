@@ -63,14 +63,14 @@ router.post(
 
 	  //Return jsonwebtoken:
 	  
-	  const payloads = {
+	  const payload = {
 		  user: {
 			  id: user.id
 		  }
 	  }
 
 	jwt.sign(
-      payloads,
+      payload,
       config.get("jwtSecret"),
       { expiresIn: 360000 },
       (err, token) => {
