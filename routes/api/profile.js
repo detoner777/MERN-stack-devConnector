@@ -118,29 +118,29 @@ router.get("/", async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
-  });
+  }
+});
 
-  //@route GET api/profile/user/:user_id
-  //@desc  Get profile by user ID
-  //@access Public
+//@route GET api/profile/user/:user_id
+//@desc  Get profile by user ID
+//@access Public
 
-  router.get("/user/:user_id", async (req, res) => {
-    try {
-      const profile = await Profile.findOne({
-        user: req.params.user_id
-      }).populate("user", ["name", "avatar"]);
+router.get("/user/:user_id", async (req, res) => {
+  try {
+    const profile = await Profile.findOne({
+      user: req.params.user_id
+    }).populate("user", ["name", "avatar"]);
 
-      if (!profile) return res.status(400).json({ msg: "Profile not found" });
+    if (!profile) return res.status(400).json({ msg: "Profile not found" });
 
-      res.json(profile);
-    } catch (err) {
-      console.error(err.message);
-      if (err.kind === "ObjectId") {
-        return res.status(400).json({ msg: "Profile not found" });
-      }
-
-      res.status(500).send("Server Error");
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === "ObjectId") {
+      return res.status(400).json({ msg: "Profile not found" });
     }
+
+    res.status(500).send("Server Error");
   }
 });
 
@@ -149,19 +149,74 @@ router.get("/", async (req, res) => {
 //@access Private
 
 router.get("/", auth, async (req, res) => {
-	try {
-		//@todo - remove users post 
-		// Remove profile:
-	 await Profile.findByIdAndRemove({ user: req.user.id});
-		//Remove user:
-	 await User.findOneAndRemove({ _id: req.user.id});
+  try {
+    //@todo - remove users post
+    // Remove profile:
+    await Profile.findByIdAndRemove({ user: req.user.id });
+    //Remove user:
+    await User.findOneAndRemove({ _id: req.user.id });
 
+    res.json({ msg: "User deleted" });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
 
-	  res.json({msg: 'User deleted'});
-	} catch (err) {
-	  console.error(err.message);
-	  res.status(500).send("Server Error");
-	});
+//@route PUT api/profile/expirience
+//@desc  Add profile expirience
+//@access Private
+router.put(
+  "/experience",
+  [
+    auth,
+    [
+      check("title", "Title is require")
+        .not()
+        .isEmpty(),
+      check("company", "Comany is require")
+        .not()
+        .isEmpty(),
+      check("from", "From date is require")
+        .not()
+        .isEmpty()
+    ]
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const {
+      title,
+      company,
+      locatiom,
+      from,
+      to,
+      current,
+      description
+    } = req.body;
 
+    const newExp = {
+      title,
+      company,
+      locatiom,
+      from,
+      to,
+      current,
+      description
+    };
+    try {
+      const profile = await Profile.findOne({ user: req.user.id });
+      profile.expirience.unshift(newExp);
+
+      await profile.save();
+
+      res.json(profile);
+    } catch (err) {
+      console.er;
+    }
+  }
+);
 
 module.exports = router;
