@@ -19,6 +19,7 @@ router.get("/me", auth, async (req, res) => {
     if (!profile) {
       return res.status(400).json({ msg: "There is no profile for this user" });
     }
+
     res.json(profile);
   } catch (err) {
     console.error(err.message);
@@ -35,7 +36,7 @@ router.post(
   [
     auth,
     [
-      check("status", "Status is require")
+      check("status", "Status is required")
         .not()
         .isEmpty(),
       check("skills", "Skills is required")
@@ -48,6 +49,7 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
     const {
       company,
       website,
@@ -62,7 +64,8 @@ router.post(
       instagram,
       linkedin
     } = req.body;
-    // Buildd profile object
+
+    // Build profile object
     const profileFields = {};
     profileFields.user = req.user.id;
     if (company) profileFields.company = company;
@@ -74,7 +77,8 @@ router.post(
     if (skills) {
       profileFields.skills = skills.split(",").map(skill => skill.trim());
     }
-    //Build social object
+
+    // Build social object
     profileFields.social = {};
     if (youtube) profileFields.social.youtube = youtube;
     if (twitter) profileFields.social.twitter = twitter;
@@ -83,22 +87,12 @@ router.post(
     if (instagram) profileFields.social.instagram = instagram;
 
     try {
-      let profile = await Profile.findOne({ user: req.user.id });
-
-      if (profile) {
-        // Update(if profile is found)
-        profile = await Profile.findOneAndUpdate(
-          { user: req.user.id },
-          { $set: profileFields },
-          { new: true }
-        );
-
-        return res.json(profile);
-      }
-      // Create
-      profile = new Profile(profileFields);
-
-      await profile.save();
+      // Using upsert option (creates new doc if no match is found):
+      let profile = await Profile.findOneAndUpdate(
+        { user: req.user.id },
+        { $set: profileFields },
+        { new: true, upsert: true }
+      );
       res.json(profile);
     } catch (err) {
       console.error(err.message);
@@ -136,10 +130,9 @@ router.get("/user/:user_id", async (req, res) => {
     res.json(profile);
   } catch (err) {
     console.error(err.message);
-    if (err.kind === "ObjectId") {
+    if (err.kind == "ObjectId") {
       return res.status(400).json({ msg: "Profile not found" });
     }
-
     res.status(500).send("Server Error");
   }
 });
@@ -148,12 +141,11 @@ router.get("/user/:user_id", async (req, res) => {
 //@desc  Delete profile, user and posts
 //@access Private
 
-router.get("/", auth, async (req, res) => {
+router.delete("/", auth, async (req, res) => {
   try {
-    //@todo - remove users post
-    // Remove profile:
-    await Profile.findByIdAndRemove({ user: req.user.id });
-    //Remove user:
+    // Remove profile
+    await Profile.findOneAndRemove({ user: req.user.id });
+    // Remove user
     await User.findOneAndRemove({ _id: req.user.id });
 
     res.json({ msg: "User deleted" });
@@ -171,13 +163,13 @@ router.put(
   [
     auth,
     [
-      check("title", "Title is require")
+      check("title", "Title is required")
         .not()
         .isEmpty(),
-      check("company", "Comany is require")
+      check("company", "Company is required")
         .not()
         .isEmpty(),
-      check("from", "From date is require")
+      check("from", "From date is required")
         .not()
         .isEmpty()
     ]
@@ -187,6 +179,7 @@ router.put(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
     const {
       title,
       company,
@@ -206,15 +199,18 @@ router.put(
       current,
       description
     };
+
     try {
       const profile = await Profile.findOne({ user: req.user.id });
-      profile.expirience.unshift(newExp);
+
+      profile.experience.unshift(newExp);
 
       await profile.save();
 
       res.json(profile);
     } catch (err) {
-      console.er;
+      console.error(err.message);
+      res.status(500).send("Server Error");
     }
   }
 );
@@ -226,40 +222,39 @@ router.delete("/experience/:exp_id", auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user.id });
     // Get remove index
-    const removeIndex = profile.expirience
+    const removeIndex = profile.experience
       .map(item => item.id)
       .indexOf(req.params.exp_id);
 
-    profile.expirience.splice(removeIndex, 1);
+    profile.experience.splice(removeIndex, 1);
 
     await profile.save();
 
     res.json(profile);
   } catch (err) {
     console.error(err.message);
-    res status(500) send('Server Err');
+    res.status(500).send("Server Error");
   }
 });
-
 
 //@route PUT api/profile/education
 //@desc  Add profile education
 //@access Private
 router.put(
-  "education",
+  "/education",
   [
     auth,
     [
-      check("school", "School is require")
+      check("school", "School is required")
         .not()
         .isEmpty(),
-      check("degree", "Degree is require")
+      check("degree", "Degree is required")
         .not()
         .isEmpty(),
-        check("fieldofstudy", "Field of study is require")
+      check("fieldofstudy", "Field of study is required")
         .not()
         .isEmpty(),
-      check("from", "From date is require")
+      check("from", "From date is required")
         .not()
         .isEmpty()
     ]
@@ -269,6 +264,7 @@ router.put(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
     const {
       school,
       degree,
@@ -288,15 +284,18 @@ router.put(
       current,
       description
     };
+
     try {
       const profile = await Profile.findOne({ user: req.user.id });
+
       profile.education.unshift(newEdu);
 
       await profile.save();
 
       res.json(profile);
     } catch (err) {
-      console.er;
+      console.error(err.message);
+      res.status(500).send("Server Error");
     }
   }
 );
@@ -319,7 +318,7 @@ router.delete("/education/:edu_id", auth, async (req, res) => {
     res.json(profile);
   } catch (err) {
     console.error(err.message);
-    res status(500) send('Server Err');
+    res.status(500).send("Server Error");
   }
 });
 
