@@ -1,3 +1,4 @@
+//create random id
 import uuid from "uuid";
 import { SET_ALERT, REMOVE_ALERT } from "./types";
 
