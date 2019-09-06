@@ -19,9 +19,10 @@ export const loadUser = () => async dispatch => {
 
   try {
     const res = await axios.get("/api/auth");
+
     dispatch({
       type: USER_LOADED,
-      payloads: res.data
+      payload: res.data
     });
   } catch (err) {
     dispatch({
@@ -38,6 +39,7 @@ export const register = ({ name, email, password }) => async dispatch => {
       "Content-Type": "application/json"
     }
   };
+
   const body = JSON.stringify({ name, email, password });
 
   try {
@@ -70,6 +72,7 @@ export const login = (email, password) => async dispatch => {
       "Content-Type": "application/json"
     }
   };
+
   const body = JSON.stringify({ email, password });
 
   try {
@@ -93,9 +96,7 @@ export const login = (email, password) => async dispatch => {
     });
   }
 };
-
 // Logout / Clear Profile
-
 export const logout = () => dispatch => {
   dispatch({ type: LOGOUT });
 };
