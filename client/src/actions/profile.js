@@ -60,12 +60,9 @@ export const createProfile = (
   }
 };
 
+// ADD Experience
 
-// ADD Experienc
-
-
-export const addExperienc = (formData, history) => async dispatch => {
-  
+export const addExperience = (formData, history) => async dispatch => {
   try {
     const config = {
       headers: {
@@ -82,9 +79,7 @@ export const addExperienc = (formData, history) => async dispatch => {
 
     dispatch(setAlert("Experience Added", "success"));
 
-    
-      history.push("/dashboard");
-    
+    history.push("/dashboard");
   } catch (err) {
     const errors = err.response.data.errors;
 
@@ -99,12 +94,9 @@ export const addExperienc = (formData, history) => async dispatch => {
   }
 };
 
-
 // ADD Education
 
-
 export const addEducation = (formData, history) => async dispatch => {
-  
   try {
     const config = {
       headers: {
@@ -121,9 +113,7 @@ export const addEducation = (formData, history) => async dispatch => {
 
     dispatch(setAlert("Education Added", "success"));
 
-    
-      history.push("/dashboard");
-    
+    history.push("/dashboard");
   } catch (err) {
     const errors = err.response.data.errors;
 
