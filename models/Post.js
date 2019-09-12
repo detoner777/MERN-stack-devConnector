@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const PostSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
-    ref: "user"
+    ref: "users"
   },
   text: {
     type: String,
@@ -28,7 +28,7 @@ const PostSchema = new Schema({
     {
       user: {
         type: Schema.Types.ObjectId,
-        ref: "user"
+        ref: "users"
       },
       text: {
         type: String,
@@ -42,14 +42,13 @@ const PostSchema = new Schema({
       },
       date: {
         type: Date,
-        deault: Date.now
+        default: Date.now
       }
     }
   ],
   date: {
     type: Date,
-    deault: Date.now
+    default: Date.now
   }
 });
-
 module.exports = Post = mongoose.model("post", PostSchema);
